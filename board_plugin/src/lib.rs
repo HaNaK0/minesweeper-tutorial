@@ -73,8 +73,8 @@ impl BoardPlugin {
                     })
                     .insert(Name::new("Background"));
 
-                for (y, line) in tile_map.iter().enumerate() {
-                    for (x, tile) in tile_map.iter().enumerate() {
+                for (y, _line) in tile_map.iter().enumerate() {
+                    for (x, _tile) in tile_map.iter().enumerate() {
                         parent.spawn_bundle(SpriteBundle {
                             sprite: Sprite {
                                 color: Color::GRAY,
