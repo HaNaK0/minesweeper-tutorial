@@ -1,5 +1,7 @@
 pub mod components;
 pub mod resources;
+mod systems;
+mod bound;
 
 use bevy::prelude::*;
 use bevy::log;
@@ -7,12 +9,16 @@ use resources::{tile_map::TileMap, BoardOptions, TileSize, BoardPosition, tile::
 use components::*;
 #[cfg(feature = "debug")]
 use bevy_inspector_egui::RegisterInspectable;
+use crate::bound::Bounds2;
+use crate::resources::board::Board;
+use bevy::math::Vec3Swizzles;
 
 pub struct BoardPlugin;
 
 impl Plugin for BoardPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(Self::create_board);
+        app.add_startup_system(Self::create_board)
+            .add_system(systems::input::input_handling);
         log::info!("Loaded Board plugin");
 
         #[cfg(feature = "debug")]
@@ -97,6 +103,17 @@ impl BoardPlugin {
                     font
                 );
             });
+
+            commands.insert_resource(
+                Board {
+                    tile_map,
+                    bounds: Bounds2 {
+                        position: board_position.xy(),
+                        size: board_size
+                    },
+                    tile_size,
+                }
+            )
     }
 
     fn adaptive_board_size(
@@ -109,7 +126,7 @@ impl BoardPlugin {
         max_width.min(max_height).clamp(min, max)
     }
 
-    fn bomb_count_text_bundle(count: u8, font: Handle<Font>, size: f32) -> Text2dBundle {
+    fn bomb_count_text_bundle(count: u8, font: Handle<Font>, font_size: f32) -> Text2dBundle {
         let (text, color) = (
             count.to_string(),
             match count {
@@ -129,9 +146,9 @@ impl BoardPlugin {
                 sections: vec![TextSection {
                     value: text,
                     style: TextStyle { 
-                        font: font, 
-                        font_size: size, 
-                        color: color 
+                        font, 
+                        font_size, 
+                        color 
                     }
                 }], 
                 alignment: TextAlignment { 
